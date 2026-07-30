@@ -42,7 +42,12 @@ import {
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-import { getDescriptor, storeConnector } from "../../scripts/connector.mjs";
+// Repo cut (AIO-594 F8): connector.mjs, scaffold-project.sh, validate-all.sh and
+// run-gui.mjs are TOOLKIT-side. A toolkit checkout (AIOS_TOOLKIT_DIR / --toolkit-dir /
+// adjacency) is a prerequisite for a live run; main() resolves it AFTER the no-key skip
+// and exits 0 with an explicit skipped_no_toolkit summary when absent. The connector
+// module is imported lazily from the resolved toolkit (never a static ../../ path).
+import { toolkitFiles, toolkitModules } from "../../gui/server/test-toolkit-prereq.mjs";
 import { judgeFlow } from "./judge.mjs";
 // NOTE: driver.mjs is imported LAZILY inside the live-flow path (it pulls in the Agent SDK),
 // so `node run-ux.mjs` is startable with no node_modules and reaches the no-key skip cleanly.
@@ -52,7 +57,11 @@ import { killGroup } from "./proc.mjs";
 import { extractJsonObject } from "./json-extract.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(HERE, "..", "..");
+// The TOOLKIT checkout root (scaffold/validate/run-gui/connector live there) —
+// resolved in main() via the toolkit-location contract (F8).
+let ROOT = null;
+let getDescriptor = null;
+let storeConnector = null;
 const EVIDENCE_ROOT = path.join(HERE, "evidence");
 // Obviously-non-secret dummy used only to gate the throwaway local cockpit
 // fixture during UX testing — never a real credential.
@@ -447,6 +456,29 @@ async function main() {
     log("ANTHROPIC_API_KEY unset → skipped_no_key (nothing to drive/judge without a key).");
     return 0;
   }
+
+  // 3b) Toolkit prerequisite (repo cut, AIO-594 F8): everything past this point spawns
+  //     toolkit-side scripts. Skip explicitly — never a crash — when no toolkit checkout
+  //     is locatable or it lacks the pieces the harness drives.
+  const prereq = toolkitFiles([
+    "scripts/connector.mjs",
+    "scripts/run-gui.mjs",
+    "scripts/scaffold-project.sh",
+    "validation/validate-all.sh",
+  ]);
+  if (prereq.skip) {
+    writeFileSync(
+      path.join(EVIDENCE_ROOT, "summary.json"),
+      JSON.stringify({ status: "skipped_no_toolkit", reason: prereq.skip, flows: [] }, null, 2) +
+        "\n"
+    );
+    log(`toolkit checkout unavailable → skipped_no_toolkit (${prereq.skip})`);
+    return 0;
+  }
+  ROOT = prereq.dir;
+  ({ getDescriptor, storeConnector } = (
+    await toolkitModules(["scripts/connector.mjs"])
+  ).modules["scripts/connector.mjs"]);
 
   // 4) From here on we genuinely need to scaffold + launch (for --setup-only or a live run).
   const parentTmp = mkdtempSync(path.join(tmpdir(), "aios-ux-"));

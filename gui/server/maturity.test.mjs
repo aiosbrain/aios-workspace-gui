@@ -1,15 +1,26 @@
-import { test } from "node:test";
+import { test as nodeTest } from "node:test";
 import assert from "node:assert/strict";
 import { buildMaturityPayload, TREND_DAYS } from "./maturity.mjs";
-// Test-only EXPECTATIONS imports (exempt from the R4 boundary — production
-// maturity.mjs no longer imports scripts/analyze at all, AIO-600): the analyze
-// internals define what the CLI's `presentation` block carries.
-import { AXIS_GUIDE, ergonomicsTip } from "../../scripts/analyze/guidance.mjs";
-import { AXIS_LABELS } from "../../scripts/analyze/aem.mjs";
-import { toJson } from "../../scripts/analyze/report.mjs";
+// Test-only EXPECTATIONS come from the TOOLKIT's analyze internals (they define what
+// the CLI's `presentation` block carries). Post-cut those live in the toolkit
+// checkout, not this repo — the whole suite (its shared SAMPLE document is built from
+// them) is gated on a locatable toolkit and skips with an explicit message otherwise
+// (AIO-594 F7).
+import { toolkitModules } from "./test-toolkit-prereq.mjs";
+
+const prereq = await toolkitModules([
+  "scripts/analyze/guidance.mjs",
+  "scripts/analyze/aem.mjs",
+  "scripts/analyze/report.mjs",
+]);
+const SKIP = prereq.skip ?? null;
+const { AXIS_GUIDE, ergonomicsTip } = prereq.modules?.["scripts/analyze/guidance.mjs"] ?? {};
+const { AXIS_LABELS } = prereq.modules?.["scripts/analyze/aem.mjs"] ?? {};
+const { toJson } = prereq.modules?.["scripts/analyze/report.mjs"] ?? {};
+const test = SKIP ? (name, ...rest) => nodeTest(name, { skip: SKIP }, rest.at(-1)) : nodeTest;
 
 // A representative `analyze --json` document (subset of report.mjs `toJson`).
-const SAMPLE = {
+const SAMPLE = SKIP ? null : {
   window: { since: "2026-06-03", until: "2026-07-03" },
   tools: ["claude"],
   totals: { sessions: 12, tasks: 40, events: 300, total_tokens: 1000 },

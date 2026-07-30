@@ -21,8 +21,9 @@ in this order:
 
 1. `--toolkit-dir <path>` argv flag;
 2. `AIOS_TOOLKIT_DIR` env var;
-3. adjacent checkout fallback: `../aios-workspace` relative to this repo
-   (i.e. `gui/server/../../../aios-workspace`-style pre-split layout);
+3. pre-split adjacency fallback (`gui/server/../../`, which only validates when
+   the server runs from inside a toolkit checkout) — standalone installs should
+   point 1 or 2 at a toolkit checkout, e.g. an adjacent `../aios-workspace`;
 4. otherwise an actionable error naming the candidate, its source, the missing
    markers, and the fix.
 
