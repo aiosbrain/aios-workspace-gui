@@ -16,7 +16,12 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SERVER = path.join(HERE, "index.mjs");
-const AIOS_CLI = path.join(HERE, "..", "..", "scripts", "aios.mjs");
+// F3 (repo cut): the `aios` CLI is resolved through the toolkit-location contract —
+// never a hard-coded `../../scripts/aios.mjs`. Resolved lazily inside the tests that
+// spawn it, so a missing toolkit surfaces as the contract's actionable error there
+// (and the pure-helper tests above keep running without any toolkit).
+import { toolkitCli } from "./toolkit-locate.mjs";
+const aiosCli = () => toolkitCli();
 
 /* ───────────────────────── pure helpers ───────────────────────── */
 
@@ -327,7 +332,7 @@ test("POST /api/asks/resolve: token-gated, validates ids, and closes a real ask"
     const add = spawn(
       process.execPath,
       [
-        AIOS_CLI,
+        aiosCli(),
         "asks",
         "add",
         "--kind",
@@ -373,7 +378,7 @@ test("GET /api/asks/show: token-gated, rejects bad ids, returns the ask body", a
     const add = spawn(
       process.execPath,
       [
-        AIOS_CLI,
+        aiosCli(),
         "asks",
         "add",
         "--kind",

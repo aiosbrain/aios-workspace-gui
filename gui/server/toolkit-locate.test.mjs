@@ -3,17 +3,23 @@
 // hard-error rules for explicit-but-invalid and present-but-valueless sources, and the
 // marker validation. See docs/gui-toolkit-contract.md §C5.
 
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, realpathSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { locateToolkit, TOOLKIT_MARKERS } from "./toolkit-locate.mjs";
 
-// This repo IS a valid toolkit (scripts/aios.mjs + scaffold/ + package.json).
-const TOOLKIT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+// Post-cut this repo is NOT a toolkit, so the valid-toolkit side of every assertion runs
+// against a synthetic fixture carrying exactly the looksLikeToolkit triad
+// (scripts/aios.mjs + scaffold/ + package.json) — no dependency on any real checkout.
+const TOOLKIT = mkdtempSync(path.join(tmpdir(), "toolkit-fixture-"));
+mkdirSync(path.join(TOOLKIT, "scripts"), { recursive: true });
+writeFileSync(path.join(TOOLKIT, "scripts", "aios.mjs"), "// synthetic toolkit CLI fixture\n");
+mkdirSync(path.join(TOOLKIT, "scaffold"), { recursive: true });
+writeFileSync(path.join(TOOLKIT, "package.json"), '{ "name": "toolkit-fixture" }\n');
+after(() => rmSync(TOOLKIT, { recursive: true, force: true }));
 
 test("resolution order: --toolkit-dir wins over env; env wins over fallback", () => {
   const viaArg = locateToolkit({
