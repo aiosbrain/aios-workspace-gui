@@ -1,4 +1,4 @@
-# Engineering Constitution — mirror-wt
+# Engineering Constitution — aios-workspace-gui
 
 > Seeded by `aios repo-bootstrap` v0.1.0 (AIO-602). This repo owns this
 > file from here — the bootstrap never overwrites it. The **canonical** engineering

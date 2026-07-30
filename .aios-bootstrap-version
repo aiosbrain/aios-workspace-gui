@@ -4,7 +4,7 @@
   "toolkitSemver": "0.8.0",
   "stampedAt": "2026-07-30T13:09:59.719Z",
   "params": {
-    "REPO_NAME": "mirror-wt",
+    "REPO_NAME": "aios-workspace-gui",
     "LINT_SCRIPT": "lint",
     "TEST_SCRIPT": "test",
     "BOOTSTRAP_VERSION": "0.1.0"
