@@ -53,12 +53,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # The live-server suites need a real AIOS toolkit checkout (NOTES.md "CI follow-up"):
+      # without AIOS_TOOLKIT_DIR they fail with the toolkit-locate error by design.
+      - name: Checkout AIOS toolkit
+        uses: actions/checkout@v7
+        with:
+          repository: aiosbrain/aios-workspace
+          # tag cut/gui-freeze — repin to the v0.9.0 release tag once cut
+          ref: d6dcdeb74a44c8424e85b0781f5f11d4e06a3dfa
+          path: toolkit-checkout
       - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
+      - name: Provision toolkit (deps + operator-loop dist)
+        working-directory: toolkit-checkout
+        run: |
+          npm ci
+          # compiled operator loop dist — needed by the inbox-capability suite
+          npm run build:loop --if-present
+      - name: Build client
+        run: npm run build:client
       - name: Test
+        env:
+          AIOS_TOOLKIT_DIR: ${{ github.workspace }}/toolkit-checkout
         run: |
           if [ -f package.json ]; then npm run test --if-present; else echo "no package.json — skipping tests"; fi
