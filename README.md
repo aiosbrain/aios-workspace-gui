@@ -31,10 +31,13 @@ A valid toolkit contains `scripts/aios.mjs`, `scaffold/`, and a root
 `package.json`. An explicit source (1 or 2) that fails validation is a hard
 error — no silent fallback.
 
-Server tests that exercise the toolkit seam (CLI spawns, seam-parity suites,
-the compiled operator-loop capability, the UX harness) require
-`AIOS_TOOLKIT_DIR` pointing at a toolkit checkout and skip with an explicit
-message otherwise.
+Server tests that exercise the toolkit seam require `AIOS_TOOLKIT_DIR`
+pointing at a toolkit checkout. Without one, prereq-gated seam suites
+(seam-parity, the compiled operator-loop capability, the UX harness) skip
+with an explicit message, but the live-server suites — which boot the real
+server — **fail** with the actionable toolkit-locate error above. A
+toolkit-less run is therefore never expected to be green; the normal test
+path always sets `AIOS_TOOLKIT_DIR` (see Commands).
 
 ## Desktop shell
 
@@ -54,10 +57,18 @@ with a plain `npm ci` / `npm install`.
 ```bash
 npm install
 npm run build:client     # vite build
-npm run test:client      # vitest
-npm run test:server      # node --test gui/server/
-AIOS_TOOLKIT_DIR=/path/to/aios-workspace npm run test:server   # full seam suites
+npm run test:client      # vitest (no toolkit needed)
+
+# Server tests and the full suite need a toolkit checkout (see "Toolkit
+# location" above) — this is the normal path, matching what CI provisions:
+AIOS_TOOLKIT_DIR=/path/to/aios-workspace npm run test:server   # node --test gui/server/
+AIOS_TOOLKIT_DIR=/path/to/aios-workspace npm test              # server + client
 ```
+
+Running `npm run test:server` **without** `AIOS_TOOLKIT_DIR` is a diagnostic
+mode only, not an expected-green path: prereq-gated seam suites skip, and the
+live-server suites fail with the actionable toolkit-locate error telling you
+how to point the server at a toolkit checkout.
 
 Node is pinned to 22 (`engines`).
 

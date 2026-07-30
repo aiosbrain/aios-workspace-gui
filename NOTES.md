@@ -28,10 +28,28 @@ core no longer carries.
   fallback); replace with the published `@aios-alpha/operator-loop` package when it exists
   (runbook F7).
 
-## CI follow-up (new-repo work, not this PR)
+## CI toolkit provisioning — **done in this PR** (commit `7a0afc2`)
 
-The bootstrap-seeded `.github/workflows/ci.yml` test job runs `npm run test` with no
-toolkit checkout: the live-server suites will fail there with the toolkit-locate
-actionable error (by design — the toolkit is a genuine prerequisite). The new repo's CI
-must provision one (e.g. `actions/checkout` of `aiosbrain/aios-workspace` +
-`AIOS_TOOLKIT_DIR`) before the test lane can be green end-to-end.
+~~The bootstrap-seeded `.github/workflows/ci.yml` test job runs `npm run test` with no
+toolkit checkout, so the live-server suites fail with the toolkit-locate actionable
+error.~~ **Done** — the unit-tests lane now provisions a real toolkit and the resulting
+CI contract is:
+
+- **Pinned toolkit checkout.** The test job checks out `aiosbrain/aios-workspace` at
+  `d6dcdeb74a44c8424e85b0781f5f11d4e06a3dfa` (the freeze SHA, tag `cut/gui-freeze`) into
+  `toolkit-checkout/`, runs `npm ci` + `npm run build:loop` there (compiled operator-loop
+  dist for the inbox-capability suite), and exports `AIOS_TOOLKIT_DIR` for `npm test`.
+  **Repin to the `v0.9.0` release tag once it is cut.**
+- **Fail-closed leak gate.** The governance job asserts `AIOS_LEAK_TERMS_B64` is
+  non-empty on `push` and same-repo `pull_request` events *before* running
+  `scripts/leak-gate.sh`, so a repo-settings regression fails loudly instead of passing
+  baseline-only. Known limitation: fork PRs never receive secrets and run the always-on
+  baseline shape rules only — the full identifier sweep for fork contributions happens on
+  the push after merge and via maintainers' local pre-push hooks.
+
+## Dependency-audit follow-up (inherited, not introduced by the cut)
+
+`npm audit --omit=dev` reports **7 high / 0 critical** advisories, all reached through
+the existing `@aios-alpha/design` / `@aios-alpha/ui` build-tool chain inherited from the
+source repo — not introduced by this cut. Owner: Linear follow-up pending (issue to be
+filed by the split orchestrator; update this line with the AIO id once it exists).
