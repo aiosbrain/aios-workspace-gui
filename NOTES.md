@@ -18,10 +18,12 @@ Nothing in this repo enforces or changes that floor; this note exists so the
 core) resolves it explicitly rather than letting the floor silently point at a suite
 core no longer carries.
 
-## Provisional items to re-prove after the `@aiosbrain/foundation` registry publish
+## Remaining provisional items
 
-- Remove the root `package.json` `overrides` entry and `vendor/aiosbrain-foundation-0.1.0.tgz`;
-  reinstall from the registry and commit the refreshed `package-lock.json`.
+- ~~Remove the root `package.json` `overrides` entry and `vendor/aiosbrain-foundation-0.1.0.tgz`;
+  reinstall from the registry and commit the refreshed `package-lock.json`.~~
+  **Done** — `@aiosbrain/foundation@0.1.0` is published; the lockfile now resolves it
+  from `registry.npmjs.org` and the vendored tarball is gone.
 - The compiled operator loop is loaded from `<toolkit>/dist/operator-loop` (toolkit-dist
   fallback); replace with the published `@aios-alpha/operator-loop` package when it exists
   (runbook F7).

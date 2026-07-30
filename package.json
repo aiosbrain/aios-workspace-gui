@@ -18,8 +18,5 @@
     "test:client": "npm run test --workspace gui/client",
     "build:client": "npm run build --workspace gui/client",
     "lint": "git ls-files '*.mjs' | xargs -n 1 node --check"
-  },
-  "overrides": {
-    "@aiosbrain/foundation": "file:../../vendor/aiosbrain-foundation-0.1.0.tgz"
   }
 }

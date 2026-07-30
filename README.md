@@ -42,13 +42,12 @@ message otherwise.
 Repointing/bundling the desktop shell for the standalone repo is owned by
 AIO-581 in this repo.
 
-## Provisional dependency note
+## Dependency note
 
-`@aiosbrain/foundation@0.1.0` is not yet on the npm registry (publish pending);
-until it lands, the root `package.json` carries an `overrides` entry mapping it
-to the committed `vendor/aiosbrain-foundation-0.1.0.tgz` (packed from the frozen
-toolkit SHA). Once the registry publish is proven, delete the override + the
-`vendor/` tarball and refresh `package-lock.json`.
+`@aiosbrain/foundation@^0.1.0` resolves from the public npm registry
+(`@aiosbrain/foundation@0.1.0`, published from the frozen toolkit SHA). The
+committed `package-lock.json` pins the registry tarball + integrity; install
+with a plain `npm ci` / `npm install`.
 
 ## Commands
 
