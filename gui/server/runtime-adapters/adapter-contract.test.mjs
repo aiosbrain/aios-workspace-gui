@@ -10,14 +10,13 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-// Relative paths in-tree (worktrees symlink node_modules from the primary checkout, so
-// just-added package subpaths don't resolve there); these become the published
-// `@aiosbrain/foundation/{adapter-contract,runtimes}` specifiers at cut time.
+// Post-cut: the contract + registry data come from the published @aiosbrain/foundation
+// package (the `adapter-contract` and `runtimes` public subpaths).
 import {
   checkAdapterRegistry,
   checkGuardWrite,
-} from "../../../packages/foundation/src/adapter-contract.mjs";
-import { RUNTIMES, GUI_RUNTIMES } from "../../../packages/foundation/src/runtimes.mjs";
+} from "@aiosbrain/foundation/adapter-contract";
+import { RUNTIMES, GUI_RUNTIMES } from "@aiosbrain/foundation/runtimes";
 import * as registry from "./index.mjs";
 import { guardWrite } from "./guard.mjs";
 import { locateToolkit } from "../toolkit-locate.mjs";

@@ -87,10 +87,9 @@ import { searchSessions } from "./sessions-search.mjs";
 import { writeFileSync as fsWriteFileSync, mkdirSync as fsMkdirSync } from "node:fs";
 import { getToolkit, toolkitCli } from "./toolkit-locate.mjs";
 import { loadCoordinator, operatorLoopStatus } from "./operator-loop-capability.mjs";
-// Single-source workspace-marker list shared with scripts/run-gui.mjs (AIO-600 C5). Relative
-// path in-tree (worktrees symlink node_modules from the primary, so a just-added package subpath
-// would not resolve); becomes the published `@aiosbrain/foundation/workspace-markers` at cut time.
-import { WORKSPACE_MARKERS } from "../../packages/foundation/src/workspace-markers.mjs";
+// Single-source workspace-marker list shared with the toolkit's scripts/run-gui.mjs
+// (AIO-600 C5); post-cut this resolves via the published @aiosbrain/foundation package.
+import { WORKSPACE_MARKERS } from "@aiosbrain/foundation/workspace-markers";
 
 // Tools that run without a permission prompt (read-only + workspace edits — the
 // PreToolUse guard hook still vets every Write/Edit for secrets and tier leaks).
