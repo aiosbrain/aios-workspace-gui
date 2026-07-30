@@ -25,3 +25,11 @@ core no longer carries.
 - The compiled operator loop is loaded from `<toolkit>/dist/operator-loop` (toolkit-dist
   fallback); replace with the published `@aios-alpha/operator-loop` package when it exists
   (runbook F7).
+
+## CI follow-up (new-repo work, not this PR)
+
+The bootstrap-seeded `.github/workflows/ci.yml` test job runs `npm run test` with no
+toolkit checkout: the live-server suites will fail there with the toolkit-locate
+actionable error (by design — the toolkit is a genuine prerequisite). The new repo's CI
+must provision one (e.g. `actions/checkout` of `aiosbrain/aios-workspace` +
+`AIOS_TOOLKIT_DIR`) before the test lane can be green end-to-end.

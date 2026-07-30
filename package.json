@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "test": "npm run test:server && npm run test:client",
-    "test:server": "node --test gui/server/",
+    "test:server": "node --test 'gui/server/**/*.test.mjs'",
     "test:client": "npm run test --workspace gui/client",
     "build:client": "npm run build --workspace gui/client",
     "lint": "git ls-files '*.mjs' | xargs -n 1 node --check"
