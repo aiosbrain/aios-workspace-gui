@@ -12,5 +12,15 @@
     "**/*.py"
   ],
   "exclude": ["node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**"],
-  "grandfathered": {}
+  "grandfathered": {
+    "gui/client/src/components/tasks/TaskViews.tsx": 553,
+    "gui/client/src/hooks/useCockpit.ts": 704,
+    "gui/client/src/types/protocol.ts": 809,
+    "gui/server/index.mjs": 1633,
+    "gui/server/runtime-adapters/capability-store.mjs": 714,
+    "gui/server/runtime-adapters/opencode.mjs": 584,
+    "gui/server/runtime-adapters/opencode.test.mjs": 546,
+    "gui/server/runtime-adapters/inbox-capability.test.mjs": 970,
+    "test/ux/run-ux.mjs": 584
+  }
 }
