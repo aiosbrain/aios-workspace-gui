@@ -41,9 +41,10 @@ path always sets `AIOS_TOOLKIT_DIR` (see Commands).
 
 ## Desktop shell
 
-`src-tauri/` runs in **adjacent-checkout mode only** and is **do-not-demo**.
-Repointing/bundling the desktop shell for the standalone repo is owned by
-AIO-581 in this repo.
+`src-tauri/` runs in **adjacent/configured-toolkit mode only** and is
+**do-not-demo** for v0.9.0. Repointing/bundling the desktop shell for the
+standalone repo is owned by AIO-581 in this repo — see `docs/desktop-app.md`
+for what the current code actually requires.
 
 ## Dependency note
 
