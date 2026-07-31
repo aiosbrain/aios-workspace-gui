@@ -18,8 +18,24 @@ import { allowedApprovalModeIds, claudeApprovalModes } from "@aiosbrain/foundati
 // Fixtures that resemble secrets / sensitive terms are assembled at runtime so this source
 // file never carries a literal match (keeps the NDA + secret gates clean).
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../");
-const GUARD = path.join(ROOT, "hooks", "team-ops-guard.sh");
+// F4 (repo cut): team-ops-guard.sh lives in the TOOLKIT (hooks/team-ops-guard.sh), not in
+// this repo — locate it through the toolkit-location contract and skip-when-absent, the
+// same posture as adapter-contract.test.mjs. The approval-mode gating tests below need no
+// toolkit and always run.
+import { existsSync } from "node:fs";
+import { locateToolkit } from "./toolkit-locate.mjs";
+
+function locateGuard() {
+  let toolkit;
+  try {
+    toolkit = locateToolkit();
+  } catch (e) {
+    return { skip: `toolkit not locatable: ${e.message}` };
+  }
+  const guard = path.join(toolkit.dir, "hooks", "team-ops-guard.sh");
+  if (!existsSync(guard)) return { skip: "toolkit has no hooks/team-ops-guard.sh" };
+  return { guard, root: toolkit.dir };
+}
 
 const FRONTMATTER = "---\nstatus: draft\nowner: test\n---\n";
 
@@ -42,12 +58,12 @@ function guardEnv() {
   return env;
 }
 
-function runGuard(toolInput) {
+function runGuard({ guard, root }, toolInput) {
   const payload = JSON.stringify({ tool_name: "Write", tool_input: toolInput });
-  return spawnSync("bash", [GUARD], {
+  return spawnSync("bash", [guard], {
     input: payload,
     encoding: "utf8",
-    cwd: ROOT,
+    cwd: root,
     env: guardEnv(),
   });
 }
@@ -94,14 +110,18 @@ test("only default + acceptEdits are exposed by default; bypassPermissions is wi
 // approval mode. We assert per-mode anyway to pin the invariant: if a future mode somehow
 // disabled the guard, this matrix would have to be revisited.
 for (const mode of EXPOSED_MODES) {
-  test(`[${mode}] guard BLOCKS a secret-bearing write (exit 2)`, () => {
-    const r = runGuard({ file_path: "2-work/notes.md", content: FRONTMATTER + FAKE_SECRET });
+  test(`[${mode}] guard BLOCKS a secret-bearing write (exit 2)`, (t) => {
+    const g = locateGuard();
+    if (g.skip) return t.skip(g.skip);
+    const r = runGuard(g, { file_path: "2-work/notes.md", content: FRONTMATTER + FAKE_SECRET });
     assert.equal(r.status, 2, `expected block; got: ${verdict(r)}`);
     assert.match(r.stderr, /secret/i);
   });
 
-  test(`[${mode}] guard BLOCKS admin-tier content in a shared dir (exit 2)`, () => {
-    const r = runGuard({
+  test(`[${mode}] guard BLOCKS admin-tier content in a shared dir (exit 2)`, (t) => {
+    const g = locateGuard();
+    if (g.skip) return t.skip(g.skip);
+    const r = runGuard(g, {
       file_path: "4-shared/proposal.md",
       content: FRONTMATTER + SENSITIVE_PHRASE,
     });
@@ -110,8 +130,13 @@ for (const mode of EXPOSED_MODES) {
   });
 }
 
-test("guard ALLOWS a clean team write (exit 0)", () => {
-  const r = runGuard({ file_path: "2-work/notes.md", content: FRONTMATTER + "Plain team notes." });
+test("guard ALLOWS a clean team write (exit 0)", (t) => {
+  const g = locateGuard();
+  if (g.skip) return t.skip(g.skip);
+  const r = runGuard(g, {
+    file_path: "2-work/notes.md",
+    content: FRONTMATTER + "Plain team notes.",
+  });
   assert.equal(r.status, 0, `expected allow; got: ${verdict(r)}`);
 });
 

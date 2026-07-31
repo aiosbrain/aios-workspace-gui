@@ -15,16 +15,23 @@ import {
   PLAN_PRICES as GUI_PLAN_PRICES,
 } from "./cost-config.mjs";
 import { buildCostsPayload } from "./costs.mjs";
-// Test-only EXPECTATIONS imports (exempt from the R4 boundary — production
-// cost-config.mjs no longer imports scripts/analyze, AIO-600): the CLI's plan
-// pricing is the source of truth the GUI copy must match.
-import {
+// Test-only EXPECTATIONS come from the TOOLKIT's claude-plan.mjs (the CLI's plan
+// pricing is the source of truth the GUI copy must match). Post-cut that module
+// lives in the toolkit checkout, not this repo — the tests that consume it are
+// gated on a locatable toolkit and skip with an explicit message otherwise
+// (AIO-594 F7). All other tests here are self-contained and always run.
+import { toolkitModules } from "./test-toolkit-prereq.mjs";
+
+const prereq = await toolkitModules(["scripts/analyze/claude-plan.mjs"]);
+const TOOLKIT_SKIP = prereq.skip ?? null;
+const {
   detectClaudePlan,
   loadCostConfig,
-  PLAN_PRICES as CLI_PLAN_PRICES,
-} from "../../scripts/analyze/claude-plan.mjs";
+  PLAN_PRICES: CLI_PLAN_PRICES,
+} = prereq.modules?.["scripts/analyze/claude-plan.mjs"] ?? {};
 
-test("SEAM PARITY: gui PLAN_PRICES copy matches the CLI's claude-plan.mjs exactly", () => {
+test("SEAM PARITY: gui PLAN_PRICES copy matches the CLI's claude-plan.mjs exactly", (t) => {
+  if (TOOLKIT_SKIP) return t.skip(TOOLKIT_SKIP);
   // cost-config.mjs carries a gui-owned copy of the plan price table (needed
   // synchronously on the settings/ledger read path, so the CLI-JSON seam does
   // not fit — AIO-600). Any drift between the copy and the CLI fails here.
@@ -98,7 +105,8 @@ test("apply merges, deletes on null, and preserves unmanaged keys", () => {
   assert.equal(cleared.metered, undefined);
 });
 
-test("clearing the Claude entry cannot resurrect as owner-entered (reviewer repro)", () => {
+test("clearing the Claude entry cannot resurrect as owner-entered (reviewer repro)", (t) => {
+  if (TOOLKIT_SKIP) return t.skip(TOOLKIT_SKIP);
   // Empirical scenario from PR #342 review: a config holding BOTH plan and
   // monthly_usd, cleared from the GUI, must fall back to auto-detection —
   // not keep showing $200 with "config"/owner-entered provenance forever.
@@ -149,7 +157,8 @@ test("updateCostConfig round-trips through the file and validates input", () => 
   rmSync(repo, { recursive: true, force: true });
 });
 
-test("pre-existing legacy config keeps working end-to-end (claude-plan.mjs)", () => {
+test("pre-existing legacy config keeps working end-to-end (claude-plan.mjs)", (t) => {
+  if (TOOLKIT_SKIP) return t.skip(TOOLKIT_SKIP);
   const legacy = { claude: { plan: "max_20x", monthly_usd: 200 } };
   const repo = tmpRepo(legacy);
   // The analyze CLI reader and the GUI reader see the same file.
@@ -219,7 +228,8 @@ test("ledger and Settings share one coercion — hand-edited strings survive (re
   rmSync(repo, { recursive: true, force: true });
 });
 
-test("a bare claude.plan resolves like the CLI does (config price, editable, clearable)", () => {
+test("a bare claude.plan resolves like the CLI does (config price, editable, clearable)", (t) => {
+  if (TOOLKIT_SKIP) return t.skip(TOOLKIT_SKIP);
   const config = { claude: { plan: "max_20x" } };
   // claude-plan.mjs maps a bare plan to its list price with source "config"…
   const plan = detectClaudePlan({ config, env: {} });

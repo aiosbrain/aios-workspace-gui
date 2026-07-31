@@ -12,20 +12,33 @@
 //
 // Run: node --test gui/server/runtime-adapters/inbox-capability.test.mjs
 
-import test from "node:test";
+import nodeTest from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, existsSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import {
+// Repo cut (AIO-594 F7): the compiled operator loop is a TOOLKIT build artifact
+// (<toolkit>/dist/operator-loop/index.js), resolved through the toolkit-location
+// contract — the pre-cut `../../../dist/...` relative path no longer exists here.
+// When no toolkit (or an unbuilt one: `npm run build:loop`) is available, the whole
+// suite skips with an explicit message. Follow-up: the published
+// `@aios-alpha/operator-loop` package replaces this fallback (runbook F7).
+import { toolkitModules } from "../test-toolkit-prereq.mjs";
+
+const prereq = await toolkitModules(["dist/operator-loop/index.js"]);
+const DIST_SKIP = prereq.skip
+  ? `${prereq.skip} (compiled operator loop; build with \`npm run build:loop\` in the toolkit)`
+  : null;
+const {
   brokerDecision,
   notifyDeepLink,
   createInMemoryJournal,
   createDurableCapabilityJournal,
   readJournalSegments,
   rebuildReadModel,
-} from "../../../dist/operator-loop/index.js";
+} = prereq.modules?.["dist/operator-loop/index.js"] ?? {};
+const test = DIST_SKIP ? (name, ...rest) => nodeTest(name, { skip: DIST_SKIP }, rest.at(-1)) : nodeTest;
 import {
   issueHandle,
   consumeAndExecute,
