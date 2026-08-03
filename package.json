@@ -12,9 +12,13 @@
     "gui/client",
     "gui/server"
   ],
+  "devDependencies": {
+    "@aiosbrain/foundation": "0.1.0"
+  },
   "scripts": {
-    "test": "npm run test:server && npm run test:client",
+    "test": "npm run test:server && npm run test:skill-library && npm run test:client",
     "test:server": "node --test 'gui/server/**/*.test.mjs'",
+    "test:skill-library": "node test/skill-install.test.mjs && node test/skill-install-marketplace.test.mjs",
     "test:client": "npm run test --workspace gui/client",
     "build:client": "npm run build --workspace gui/client",
     "lint": "git ls-files '*.mjs' | xargs -n 1 node --check",

@@ -8,6 +8,14 @@
 // gui/server/skill-library.mjs already made this same substitution when it was
 // decoupled from scripts/**, AIO-600 C2).
 //
+// `@aiosbrain/foundation`'s README marks every `./internal/*` subpath as explicitly
+// unstable, with no semver guarantee across even patch releases. This repo therefore
+// pins it to the EXACT version `0.1.0` (root package.json's devDependencies +
+// gui/server/package.json's dependencies — both non-range, not `^0.1.0`) rather than
+// letting a routine `npm update`/lockfile refresh silently accept a 0.1.x patch that
+// renames or removes `./internal/skill-scan`. Bumping past 0.1.0 must be a deliberate,
+// reviewed version bump in both package.json files together, not an automatic one.
+//
 // The OFFICIAL tier installs only vendored, Apache-2.0 skills; the COMMUNITY tier
 // (Phase 3.5) admits non-official skills behind a static-scan + consent gate. The
 // invariants that must hold at build time are:

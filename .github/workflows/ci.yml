@@ -28,9 +28,17 @@ jobs:
         run: node scripts/check-file-size.mjs
       - name: Repo-boundary gate
         run: node scripts/check-boundaries.mjs
-      - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
+      - name: Install dependencies (gui/server scope only, no lifecycle scripts)
+        # OGR09 only needs @aiosbrain/foundation's skill-scan resolved (gui/server's own
+        # dependency) — not the client's build toolchain (style-dictionary,
+        # @bundled-es-modules/glob, both of which run `postinstall: patch-package`). A
+        # governance-gates job runs before the leak/confidentiality gates below, so it
+        # must not execute arbitrary third-party lifecycle scripts. Scoping to the
+        # gui/server workspace + --ignore-scripts drops the install from 537 packages to
+        # ~106 and neither postinstall-bearing package is pulled in. Verified:
+        # `node validation/check-skill-library.mjs` still passes clean against this
+        # narrower install.
+        run: npm ci --ignore-scripts --workspace=gui/server
       - name: Skill-library integrity + licensing gate (OGR09)
         run: node validation/check-skill-library.mjs
       - name: Assert leak-gate term secret present (fail closed)
