@@ -17,6 +17,11 @@
     "test:server": "node --test 'gui/server/**/*.test.mjs'",
     "test:client": "npm run test --workspace gui/client",
     "build:client": "npm run build --workspace gui/client",
-    "lint": "git ls-files '*.mjs' | xargs -n 1 node --check"
+    "lint": "git ls-files '*.mjs' | xargs -n 1 node --check",
+    "lock:skill-library": "node scripts/lock-skill-library.mjs",
+    "lock:skill-library:check": "node scripts/lock-skill-library.mjs --check",
+    "lock:marketplace": "node scripts/lock-marketplace.mjs",
+    "lock:marketplace:check": "node scripts/lock-marketplace.mjs --check",
+    "validate:skill-library": "node validation/check-skill-library.mjs"
   }
 }

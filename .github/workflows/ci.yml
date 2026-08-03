@@ -1,7 +1,9 @@
 # CI skeleton seeded by `aios repo-bootstrap` (AIO-602). This repo owns it from here —
 # the bootstrap never overwrites an existing ci.yml. The governance-gates job mirrors
 # the aios-workspace invariants (ENGINEERING-CONSTITUTION.md §8): file-size cap,
-# repo-boundary seams, and the confidentiality leak gate.
+# repo-boundary seams, and the confidentiality leak gate. It also runs OGR09 (AIO-702):
+# the skill-library integrity + licensing check ported from aios-workspace, which needs
+# `npm ci` first so `@aiosbrain/foundation/internal/skill-scan` resolves.
 name: ci
 
 on:
@@ -26,6 +28,11 @@ jobs:
         run: node scripts/check-file-size.mjs
       - name: Repo-boundary gate
         run: node scripts/check-boundaries.mjs
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; fi
+      - name: Skill-library integrity + licensing gate (OGR09)
+        run: node validation/check-skill-library.mjs
       - name: Assert leak-gate term secret present (fail closed)
         # Known limitation: fork PRs never receive repo secrets, so they can only run the
         # baseline shape rules — the assertion is scoped to push + same-repo PRs to avoid
