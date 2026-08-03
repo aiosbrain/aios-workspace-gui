@@ -18,23 +18,16 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-// Repo cut (AIO-594 F8): lock-marketplace.mjs is TOOLKIT-side (the writer half of the
-// marketplace lock). A toolkit checkout is a prerequisite; skip explicitly (exit 0)
-// with the reason when it is not locatable — never a crash on a missing ../scripts path.
-import { toolkitModules } from "../gui/server/test-toolkit-prereq.mjs";
+// AIO-702: lock-marketplace.mjs (the writer half of the marketplace lock) is now PORTED
+// into this repo's own scripts/ — the toolkit-checkout prerequisite this test used to need
+// (AIO-594 F8) is gone. Import it directly; no more skip-if-toolkit-missing dance.
+import { hashDir, structuralCheck } from "../scripts/lock-marketplace.mjs";
 import {
   scanSkillById,
   installSkill,
   listLibrary,
   uninstallSkill,
 } from "../gui/server/skill-library.mjs";
-
-const prereq = await toolkitModules(["scripts/lock-marketplace.mjs"]);
-if (prereq.skip) {
-  console.log(`SKIP skill-install-marketplace.test: ${prereq.skip}`);
-  process.exit(0);
-}
-const { hashDir, structuralCheck } = prereq.modules["scripts/lock-marketplace.mjs"];
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const LIBRARY_DIR = path.join(DIR, "..", "gui", "server", "skill-library");
