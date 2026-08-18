@@ -75,4 +75,8 @@ Node is pinned to 22 (`engines`).
 
 ## License
 
-MIT — see `LICENSE`.
+**AGPL-3.0-only** — see [`LICENSE`](LICENSE). Running it is unrestricted; the AGPL places no
+obligation on internal use. Prior releases remain MIT, preserved in
+[`LICENSE-MIT`](LICENSE-MIT). If your organization's policy bans AGPL, there is a
+[free commercial license](COMMERCIAL-LICENSE.md) for internal use — email cn@fluora.ai.
+Details in [`LICENSING.md`](LICENSING.md).

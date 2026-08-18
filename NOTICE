@@ -1,0 +1,49 @@
+AIOS Workspace GUI
+Copyright (C) 2026 Chetan Nandakumar and John Ellison
+
+This software is licensed under the GNU Affero General Public License v3.0 only
+(AGPL-3.0-only). See LICENSE.
+
+This file records third-party components carrying an attribution obligation. It is not
+a complete dependency list — see the package.json files and their lockfiles for that.
+
+The GUI is a local cockpit for an AIOS workspace: a web client and server under `gui/`,
+plus a Tauri desktop shell under `src-tauri/`. It reads and drives a workspace checkout
+on the same machine.
+
+
+Notable components
+------------------
+
+Tauri — Apache License 2.0 / MIT (dual)
+    https://github.com/tauri-apps/tauri
+    The desktop shell. Referenced as a build dependency and not redistributed here in
+    modified form. Both arms of its dual license are permissive and compatible with
+    distributing this application under the AGPL.
+
+Rust standard library and crates under `src-tauri/` — Apache-2.0 / MIT (dual)
+    Resolved by Cargo at build time. All permissive.
+
+Node dependencies of `gui/client` and `gui/server` — predominantly MIT / ISC / BSD
+    Permissive and compatible with an AGPL-licensed work. The lockfiles are the
+    authoritative record.
+
+
+Vendored third-party content
+----------------------------
+
+gui/server/skill-library/ — Apache License 2.0
+
+    Five vendored skill libraries, each shipping its own upstream LICENSE.txt:
+
+        claude-api/
+        frontend-design/
+        mcp-builder/
+        skill-creator/
+        web-artifacts-builder/
+
+    These are third-party works included verbatim. Their Apache-2.0 licenses and notices
+    are retained in place and are NOT altered by this repository's relicense — we hold no
+    copyright in them and so have nothing to relicense. Apache-2.0 composes into an
+    AGPL-licensed distribution without conflict, and the LICENSE.txt files that ship
+    alongside them are how the attribution obligation is met.

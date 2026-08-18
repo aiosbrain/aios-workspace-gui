@@ -4,7 +4,7 @@
   "private": true,
   "description": "AIOS Workspace GUI — local cockpit (Claude Agent SDK server + React client) cut from aiosbrain/aios-workspace (AIO-594).",
   "type": "module",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "engines": {
     "node": ">=22 <23"
   },
