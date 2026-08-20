@@ -110,7 +110,7 @@ jobs:
             npm ci --ignore-scripts
             # Provision the toolkit exactly as ci.yml's `unit tests` job does: a full install
             # (its postinstall builds the operator-loop dist the inbox-capability suite needs).
-            ( cd toolkit-checkout && npm ci && npm run build:loop --if-present )
+            ( cd toolkit-checkout && npm ci --ignore-scripts && npm run build:loop --if-present )
             npm run test:coverage
           else
             echo "no locked test:coverage suite — skipping (coverage will report as 'no report')."
