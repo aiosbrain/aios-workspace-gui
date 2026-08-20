@@ -82,18 +82,47 @@ jobs:
       # the script and has a lockfile. Never let it fail the scan: this is a metrics source, not
       # a gate. Lifecycle scripts are disabled during install; the named coverage script remains
       # an explicit, auditable execution step.
+      # This repo's server suite is NOT self-contained: gui/server boots against a real AIOS
+      # toolkit checkout and, without AIOS_TOOLKIT_DIR, 27 of its tests fail with the
+      # toolkit-locate error by design (NOTES.md "CI follow-up"). ci.yml's `unit tests` job
+      # already solves this the same way; the pinned ref is kept identical to that job's.
+      # Without this the coverage step below runs, fails, gets sanitized, and the dashboard
+      # stays at "no report" — green the whole way.
+      - name: Checkout the AIOS toolkit (the server suite needs it)
+        if: steps.brain.outputs.configured == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: aiosbrain/aios-workspace
+          # tag cut/gui-freeze — keep in lockstep with ci.yml's `unit tests` job.
+          ref: d6dcdeb74a44c8424e85b0781f5f11d4e06a3dfa
+          path: toolkit-checkout
+          persist-credentials: false
+
       - name: Generate coverage (only if this workspace has a suite)
         id: coverage
         if: steps.brain.outputs.configured == 'true'
         continue-on-error: true # metrics source; failure stays visible but never blocks the scan
+        env:
+          AIOS_TOOLKIT_DIR: ${{ github.workspace }}/toolkit-checkout
         run: |
           if [ -f package-lock.json ] && node -e "process.exit(require('./package.json').scripts?.['test:coverage'] ? 0 : 1)" 2>/dev/null; then
             echo "test:coverage found — running it."
             npm ci --ignore-scripts
+            # Provision the toolkit exactly as ci.yml's `unit tests` job does: a full install
+            # (its postinstall builds the operator-loop dist the inbox-capability suite needs).
+            ( cd toolkit-checkout && npm ci --ignore-scripts && npm run build:loop --if-present )
             npm run test:coverage
           else
             echo "no locked test:coverage suite — skipping (coverage will report as 'no report')."
           fi
+
+      # The scanner counts tracked files and LOC under `--path .`, so a second repository
+      # sitting inside the checkout would silently distort every size/health metric it
+      # reports. It is untracked here, but remove it anyway before the scan runs — the
+      # toolkit is only needed for the step above.
+      - name: Remove the toolkit checkout before scanning
+        if: always() && steps.brain.outputs.configured == 'true'
+        run: rm -rf -- toolkit-checkout
 
       - name: Sanitize failed coverage output
         if: >-

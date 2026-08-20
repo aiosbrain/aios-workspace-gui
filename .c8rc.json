@@ -1,0 +1,31 @@
+{
+  "all": true,
+  "include": [
+    "gui/server/**/*.mjs",
+    "scripts/**/*.mjs",
+    "hooks/**/*.mjs",
+    "validation/**/*.mjs"
+  ],
+  "exclude": [
+    "**/*.test.*",
+    "**/__fixtures__/**",
+    "test/**",
+    "coverage/**",
+    "dist/**",
+    "scripts/run-coverage.mjs",
+    "gui/server/server-test-harness.mjs",
+    "gui/server/test-toolkit-prereq.mjs",
+    "gui/server/skill-library/**"
+  ],
+  "exclude-after-remap": true,
+  "extension": [
+    ".js",
+    ".mjs"
+  ],
+  "reporter": [
+    "lcov",
+    "json-summary"
+  ],
+  "reports-dir": "coverage/root",
+  "clean": true
+}
