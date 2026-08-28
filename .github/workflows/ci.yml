@@ -1,7 +1,8 @@
 # CI skeleton seeded by `aios repo-bootstrap` (AIO-602). This repo owns it from here —
 # the bootstrap never overwrites an existing ci.yml. The governance-gates job mirrors
-# the aios-workspace invariants (ENGINEERING-CONSTITUTION.md §8): file-size cap,
-# repo-boundary seams, and the confidentiality leak gate. It also runs OGR09 (AIO-702):
+# the aios-workspace invariants (ENGINEERING-CONSTITUTION.md §8): file-size cap and
+# repo-boundary seams. Confidentiality scanning is isolated in leak-gate.yml so the private
+# term set never reaches this PR-controlled workflow. This job also runs OGR09 (AIO-702):
 # the skill-library integrity + licensing check ported from aios-workspace, which needs
 # `npm ci` first so `@aiosbrain/foundation/internal/skill-scan` resolves.
 name: ci
@@ -17,7 +18,7 @@ concurrency:
 
 jobs:
   gates:
-    name: governance gates (size + boundaries + leak)
+    name: governance gates (size + boundaries + OGR09)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -41,29 +42,24 @@ jobs:
         run: npm ci --ignore-scripts --workspace=gui/server
       - name: Skill-library integrity + licensing gate (OGR09)
         run: node validation/check-skill-library.mjs
-      - name: Assert leak-gate term secret present (fail closed)
-        # Known limitation: fork PRs never receive repo secrets, so they can only run the
-        # baseline shape rules — the assertion is scoped to push + same-repo PRs to avoid
-        # breaking forks. For those trusted events a missing/empty AIOS_LEAK_TERMS_B64 must
-        # FAIL, not silently degrade to baseline-only: a repo-settings regression must never
-        # appear green.
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+  gates-context-compatibility:
+    # Temporary fail-closed bridge for the protected status context while branch protection
+    # moves to `governance gates (size + boundaries + OGR09)`. Remove after that migration.
+    name: governance gates (size + boundaries + leak)
+    needs: gates
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror renamed governance result
         env:
-          # Boolean only — the secret value itself is never exported or echoed by this step.
-          HAS_LEAK_TERMS: ${{ secrets.AIOS_LEAK_TERMS_B64 != '' }}
+          GOVERNANCE_RESULT: ${{ needs.gates.result }}
         run: |
-          if [ "$HAS_LEAK_TERMS" != "true" ]; then
-            echo "::error::AIOS_LEAK_TERMS_B64 repo secret is missing or empty — the confidential-identifier sweep cannot run, and a baseline-only pass must not look green on trusted events. Reinstall the secret (Settings > Secrets and variables > Actions) from the sanctioned local term file."
+          if [ "$GOVERNANCE_RESULT" != "success" ]; then
+            echo "::error::The renamed governance job did not pass."
             exit 1
           fi
-          echo "leak-gate term secret present — the identifier sweep will run."
-      - name: Confidentiality leak gate
-        # Terms come from the AIOS_LEAK_TERMS_B64 secret (never stored in the repo).
-        # Fork PRs (no secrets) fall back to the gate's always-on baseline shape rules;
-        # push + same-repo PRs are guaranteed the full sweep by the assertion above.
-        env:
-          AIOS_LEAK_TERMS_B64: ${{ secrets.AIOS_LEAK_TERMS_B64 }}
-        run: bash scripts/leak-gate.sh .
+          echo "Renamed governance job passed."
 
   lint:
     name: lint
