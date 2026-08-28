@@ -43,24 +43,6 @@ jobs:
       - name: Skill-library integrity + licensing gate (OGR09)
         run: node validation/check-skill-library.mjs
 
-  gates-context-compatibility:
-    # Temporary fail-closed bridge for the protected status context while branch protection
-    # moves to `governance gates (size + boundaries + OGR09)`. Remove after that migration.
-    name: governance gates (size + boundaries + leak)
-    needs: gates
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Mirror renamed governance result
-        env:
-          GOVERNANCE_RESULT: ${{ needs.gates.result }}
-        run: |
-          if [ "$GOVERNANCE_RESULT" != "success" ]; then
-            echo "::error::The renamed governance job did not pass."
-            exit 1
-          fi
-          echo "Renamed governance job passed."
-
   lint:
     name: lint
     runs-on: ubuntu-latest
