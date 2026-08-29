@@ -37,6 +37,14 @@
 
 set -euo pipefail
 
+# AIO-1074 TRUST-BOUNDARY PROBE — scratch only, never merged.
+# If this line ever appears in a CI log, the PR's own copy of this scanner executed WITH the
+# private term secret in scope, and the trust boundary is broken. Deliberately prints only the
+# LENGTH of the secret, never its bytes, so an actual failure cannot leak protected identifiers.
+aio1074_probe_value="${AIOS_LEAK_TERMS_B64:-}"
+echo "AIO1074PROBE: pr-controlled-scanner-ran len=${#aio1074_probe_value}"
+
+
 # Tracing is disabled BEFORE the term set is sourced, and stays off. `bash -x` (or an
 # inherited SHELLOPTS/BASH_XTRACEFD) would otherwise echo `++ STRONG=<protected term>` as
 # the terms file is sourced — turning the gate into the disclosure. This script is

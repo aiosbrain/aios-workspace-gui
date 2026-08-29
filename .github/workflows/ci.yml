@@ -43,6 +43,15 @@ jobs:
       - name: Skill-library integrity + licensing gate (OGR09)
         run: node validation/check-skill-library.mjs
 
+      # AIO-1074 TRUST-BOUNDARY PROBE — scratch only, never merged. This is the exact
+      # attacker move the migration closes: a PR-controlled job reading the private term
+      # secret out of its own environment. Expected output is len=0. Prints only a length,
+      # never secret bytes, so a genuine failure cannot leak protected identifiers.
+      - name: AIO-1074 probe — does this PR-controlled job hold the term secret?
+        run: |
+          v="${AIOS_LEAK_TERMS_B64:-}"
+          echo "AIO1074PROBE-CI: gates-job-env len=${#v}"
+
   lint:
     name: lint
     runs-on: ubuntu-latest
